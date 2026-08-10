@@ -498,10 +498,17 @@ fi
 # --------------------------------------------------------------------------
 # 8. surface-stale-automation-failures.py -- reads the OTHER vault's runner log
 # --------------------------------------------------------------------------
+# Match the actual finding LINE ("  - auto-snapshot: N failure(s)..."), not a
+# bare substring: the hook's static footer ("...auto-snapshot.sh failed every
+# hour for 48+ hours unnoticed...") mentions "auto-snapshot" on every firing
+# regardless of which runner tripped it (e.g. team_broadcast_install_gap()
+# fires unconditionally in this fixture, since the sandboxed $FAKEHOME never
+# has team-broadcast installed) -- a bare grep would false-pass/false-fail on
+# that boilerplate instead of testing vault scoping.
 run_hook "$HOOKS/surface-stale-automation-failures.py" \
   "$(python3 -c 'import json,sys; print(json.dumps({"cwd":sys.argv[1]}))' "$OTHER")" \
   "VAULT_ROOT=$DECOY" "HOME=$FAKEHOME" "USERPROFILE=$FAKEHOME"
-if grep -q "auto-snapshot" "$OUT"; then
+if grep -q "  - auto-snapshot:" "$OUT"; then
   pass "surface-stale-automation-failures surfaces a non-\$VAULT_ROOT vault's silent failures (rc=$RC)"
 else
   fail "surface-stale-automation-failures reported nothing while the OTHER vault was failing hourly (rc=$RC)"
@@ -511,7 +518,7 @@ fi
 run_hook "$HOOKS/surface-stale-automation-failures.py" \
   "$(python3 -c 'import json,sys; print(json.dumps({"cwd":sys.argv[1]}))' "$DECOY")" \
   "VAULT_ROOT=$DECOY" "HOME=$FAKEHOME" "USERPROFILE=$FAKEHOME"
-if grep -q "auto-snapshot" "$OUT"; then
+if grep -q "  - auto-snapshot:" "$OUT"; then
   fail "surface-stale-automation-failures reported the OTHER vault's failures for a session in the decoy vault"
   show_streams
 else

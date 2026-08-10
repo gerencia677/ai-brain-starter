@@ -9,6 +9,16 @@ description: What's new in AI Brain Starter — plain English, no jargon
 
 ---
 
+## 2026-08-10: a missing team-broadcast install looked exactly like a healthy one
+
+**Who this affects:** anyone using the team-broadcast skill (Slack session-close recaps) across more than one machine.
+
+**The silent-failure watchdog (`surface-stale-automation-failures.py`) couldn't tell "never installed" from "installed and fine."** It works by scanning a log file for recent failures — no recent failures, no warning. But a machine that never had `auto-send.py` installed also has no log file, for the same reason: nothing ever ran there. Both cases produced exactly zero signal, on every session, forever. That's a stricter silence than an outright failure would have been — a broken install eventually leaves an error in the log; a missing install leaves nothing to ever go wrong. The watchdog now checks installation directly (the script's presence, then whether the daily launchd job is registered) before it ever looks at the log, and says so specifically: "NOT INSTALLED on this machine" instead of staying quiet.
+
+**Also:** this file's non-ASCII console output (the warning emoji, some em dashes) was carried over from before MYC-3530 widened the UTF-8 console-crash lint to `hooks/`. It's provably safe — the only print is `json.dumps(...)`, which escapes non-ASCII before it reaches stdout — so it's now marked `# utf8-stdout-ok` and dropped from the legacy pin list instead of staying silently grandfathered in.
+
+---
+
 ## 2026-07-31: five Windows install bugs, all of them silent
 
 **Who this affects:** everyone on Windows. Two of the five also affect Mac and Linux. All of them were reported by people who ran the installer, were told it succeeded, and found out later that it hadn't.

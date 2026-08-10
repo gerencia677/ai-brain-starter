@@ -320,6 +320,7 @@ INTEGRATION_TESTS=(
   # while allowing one in a clean repo. Registration is the assertion — a guard
   # present on disk and absent from settings.json protects nobody.
   test_installer_registers_inflight_guard
+  test_team_broadcast_install_gap
 )
 # ---- Gate-coverage invariant -------------------------------------------------
 # The list above is an explicit allow-list, and allow-lists rot: a new
